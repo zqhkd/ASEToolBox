@@ -1,0 +1,84 @@
+%% File	   : SerialReceive_sfcn.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function SerialReceive_sfcn.c
+%% Author  : Hyowinner @2024/11/15
+%%           Add second outport for telling user the length actually received.
+
+%implements "SerialReceive_sfcn" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+    %assign data = LibBlockOutputSignal(0, "", "", 0)
+    %assign t_data_length = SFcnParamSettings.r_data_length
+    %assign fileC = LibGetModelDotCFile()
+    %assign fileH = LibGetModelDotHFile()
+    %openfile buffer
+    #define BUFFER_SIZE sizeof(%<data>) * %<t_data_length>
+    %closefile buffer 
+    %<LibSetSourceFileSection(fileH, "Defines", buffer)>
+
+    %openfile buffer
+    ssize_t bytes_read1; 
+    %% ssize_t bytes_read2;   // 接收到数据的字节数后一半
+    %closefile buffer    
+    %<LibSetSourceFileSection(fileC, "Declarations", buffer)>
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    
+%endfunction %% Start
+
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+    %%assign t_serial_select = SFcnParamSettings.r_serial_select
+    %assign t_dtIdex = SFcnParamSettings.r_dtIdex - 1
+    %assign t_data_length = SFcnParamSettings.r_data_length
+
+    %assign data = LibBlockOutputSignal(0, "", "", 0)
+    %assign len = LibBlockOutputSignal(1, "", "", 0)
+    %% 接收信号的数据类型
+    %switch t_dtIdex
+        %case 0
+            %assign dt = "double"
+            %break
+        %case 1
+            %assign dt = "float"
+            %break
+        %case 2
+            %assign dt = "int8_t"
+            %break
+        %case 3
+            %assign dt = "uint8_t"
+            %break
+        %case 4
+            %assign dt = "int16_t"
+            %break
+        %case 5
+            %assign dt = "uint16_t"
+            %break
+        %case 6
+            %assign dt = "int32_t"
+            %break
+        %case 7
+            %assign dt = "uint32_t"
+            %break
+        %case 8
+            %assign dt = "bool"
+            %break
+    %endswitch
+    
+    bytes_read1 = read_data_from_serial_port(fd, &%<data>, sizeof(%<data>) * %<t_data_length>);
+    %% bytes_read2 = read_data_from_serial_port(fd, &%<data> + sizeof(%<data>) * %<t_data_length>/2, sizeof(%<data>) * %<t_data_length>/2);
+    %<len> = (uint16_T)(bytes_read1);
+    
+%endfunction %% Outputs

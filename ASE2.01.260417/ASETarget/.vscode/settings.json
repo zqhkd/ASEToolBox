@@ -1,0 +1,15 @@
+{
+    "files.associations": {
+        "time.h": "c",
+        "syscomlib.h": "c",
+        "atomic": "cpp",
+        "tcomtask.h": "c",
+        "timer.h": "c",
+        "autogetset.h": "c",
+        "socketcomm.h": "c",
+        "ringbuff.h": "c",
+        "asesyscommon.h": "c",
+        "aseslx2ubuntusysapi.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}

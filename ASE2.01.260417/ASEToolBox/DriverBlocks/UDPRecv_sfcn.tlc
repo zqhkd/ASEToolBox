@@ -1,0 +1,264 @@
+%% File	   : UDPRecv_sfcn.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function UDPRecv_sfcn.c
+%% Author  : Hyowinner @2025/01/21~2025/02/16
+%%           
+%% 在Linux Ubuntu中，虽然同一个套接字（socket）可以实现既接收（receive）又发送（send）数据。
+%% 为了兼容性更强，设计时采用分离式，发送端和接收端分别使用各自的套接字。
+%% 接收端设计两个地址，本机地址和远程机地址（接收目标）
+%% 接收端，发送端各一个套接字，绑定本机，sendto远端1，recvfrom远端2
+%% 由于阻塞方式接收，在跟Windows上位机的单收测试中影响了实时性，故改设计为非阻塞式接收
+%% 非阻塞形式下要考虑模块存在多个实例的情况，生成的变量不能重复,并且多个实例不能对本地socket绑定多次。
+%% 需要对同一个接收IP的不同端口设置重用模式。
+%% 接收后未清除缓存，即使发送端停止发送，接收到的数据依然存在，需要增加缓存清除功能。
+%% NetAssist发送间隔过大，会造成很多情况下接收不到数据，设计为3帧连续收不到，才确认无数据。
+%%
+%% Change @ 2025/09/12: 解决发送和接收模块本地端口相同时，本机数据接收不稳定的情况
+%implements "UDPRecv_sfcn" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+    %% 兼容三种模式，单收、单发、收发，所以需要判断由哪个模块来负责生成头文件
+    %if ~EXISTS(::UDPRecvExist)
+        %assign ::UDPRecvExist = 0
+    %else
+        %assign ::UDPRecvExist = 1
+    %endif
+
+    %if ~EXISTS(::UDPSendExist)
+    %<LibAddToCommonIncludes("stdio.h")>
+    %<LibAddToCommonIncludes("stdlib.h")>
+    %<LibAddToCommonIncludes("string.h")>
+    %<LibAddToCommonIncludes("unistd.h")>
+    %<LibAddToCommonIncludes("poll.h")>
+    %<LibAddToCommonIncludes("sys/socket.h")>
+    %<LibAddToCommonIncludes("netinet/in.h")>
+    %<LibAddToCommonIncludes("arpa/inet.h")>
+    %<LibAddToCommonIncludes("fcntl.h")>
+    %<LibAddToCommonIncludes("errno.h")>
+    %endif
+
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+    
+
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    %if EXISTS(::recvCnt)
+        %assign ::recvCnt = ::recvCnt + 1
+    %else
+        %assign ::recvCnt = 0
+    %endif
+    %assign t_ip = SFcnParamSettings.r_ip
+    %assign t_port = SFcnParamSettings.r_port
+    %assign t_localport = SFcnParamSettings.r_localport
+    %assign t_reuse_port = SFcnParamSettings.r_reuse_port
+
+    %assign selfloop = 0
+
+    %if EXISTS(::send_ip)
+        %if ISEQUAL(::send_ip, %<t_ip>)   
+            %if ISEQUAL(t_reuse_port, 1)    %% 若本地机收发是一个IP，并且使用同一个端口，判断进行回环测试
+                %assign selfloop = 1 
+            %endif
+        %endif
+    %endif
+
+    %% 广播还是单播判断
+    %assign broadcast = 0
+    %if ISEQUAL(%<t_ip>, "0.0.0.0")
+        %assign broadcast = 1
+    %endif
+    %if ISEQUAL(selfloop, 0)   %% 独立套接字
+        // 开始生成UDPRecv相关程序....,  Modified by ZQingHua 20250915
+        // 创建UDP套接字
+        if ((sockfd_recv%<::recvCnt> = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+            perror("recv socket creation failed");
+            exit(EXIT_FAILURE);
+        }
+    
+            %if ISEQUAL(::recvCnt, 0)
+        int opt = 1;
+            %endif
+        setsockopt(sockfd_recv%<::recvCnt>, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt));  // 允许不同socket绑定到相同的端口上
+    
+        // 设置接收端本机地址信息
+        memset(&loc_recvaddr%<::recvCnt>, 0, sizeof(loc_recvaddr%<::recvCnt>));
+        loc_recvaddr%<::recvCnt>.sin_family = AF_INET;
+            %if ISEQUAL(broadcast, 1)
+        loc_recvaddr%<::recvCnt>.sin_addr.s_addr = htonl(INADDR_ANY);  // 广播方式接收，本地应该监听所有接口
+            %else
+        loc_recvaddr%<::recvCnt>.sin_addr.s_addr = inet_addr(LOCAL_IP_RECV%<::recvCnt>);
+            %endif
+        loc_recvaddr%<::recvCnt>.sin_port = htons(LOCAL_PORT_RECV%<::recvCnt>);
+            
+        // 绑定套接字到本机地址(多实例时避免重复绑定)，UDPRecv_sfcn生成
+        if (bind(sockfd_recv%<::recvCnt>, (const struct sockaddr *)&loc_recvaddr%<::recvCnt>, sizeof(loc_recvaddr%<::recvCnt>)) < 0) {
+            printf("recv local socket sockfd_recv%<::recvCnt> bind error!\n");
+            perror("bind failed");
+            close(sockfd_recv%<::recvCnt>);
+            exit(EXIT_FAILURE);
+        }
+            
+        // 获取套接字的当前状态，UDPRecv_sfcn生成
+        int flags_%<::recvCnt> = fcntl(sockfd_recv%<::recvCnt>, F_GETFL, 0);
+        if (flags_%<::recvCnt> == -1) {
+            perror("fcntl get flags_%<::recvCnt> failed");
+            exit(EXIT_FAILURE);
+        }
+    
+        // 将套接字设置为非阻塞模式，UDPRecv_sfcn生成
+        if (fcntl(sockfd_recv%<::recvCnt>, F_SETFL, flags_%<::recvCnt> | O_NONBLOCK) == -1) {
+            perror("fcntl set flags_%<::recvCnt> failed");
+            exit(EXIT_FAILURE);
+        }
+    
+        // 设置远程机端口信息
+        memset(&recvaddr%<::recvCnt>, 0, sizeof(recvaddr%<::recvCnt>));
+        recvaddr%<::recvCnt>.sin_family = AF_INET;
+            %if ISEQUAL(broadcast, 1)
+        recvaddr%<::recvCnt>.sin_addr.s_addr = htonl(INADDR_ANY);
+            %else
+        recvaddr%<::recvCnt>.sin_addr.s_addr = inet_addr(RECV_IP%<::recvCnt>);
+            %endif
+        recvaddr%<::recvCnt>.sin_port = htons(RECV_PORT%<::recvCnt>);
+        
+        len%<::recvCnt> = sizeof(recvaddr%<::recvCnt>);  // 初始化远程机器地址结构体长度
+
+        // 结束UDPRecv代码生成....,  Modified by ZQingHua 20250915
+            
+    %else    %% 回环测试则使用发送端创建的套接字
+      
+       // 接收端使用发送端同一个套接字，此处不再单独创建和绑定套接字
+
+    %endif
+
+%endfunction %% Start
+    
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+  
+    %if EXISTS(::UDP_RecvCntOut)
+        %assign ::UDP_RecvCntOut = ::UDP_RecvCntOut + 1
+    %else
+        %assign ::UDP_RecvCntOut = 0
+    %endif
+
+    %assign data = LibBlockOutputSignal(0, "", "", 0)
+    %assign len = LibBlockOutputSignal(1, "", "", 0)
+    %assign t_ip = SFcnParamSettings.r_ip
+    %assign t_buffersize = SFcnParamSettings.r_buffersize
+    %assign t_datatype = SFcnParamSettings.r_datatype
+    %assign t_sample_time = SFcnParamSettings.r_sample_time
+    %assign t_port = SFcnParamSettings.r_port
+    %assign t_localip = SFcnParamSettings.r_localip
+    %assign t_localport = SFcnParamSettings.r_localport
+    %assign t_reuse_port = SFcnParamSettings.r_reuse_port
+
+    %assign fileC = LibGetModelDotCFile()
+    %assign fileH = LibGetModelDotHFile()
+    
+    %openfile buffer
+    #define RECV_PORT%<::UDP_RecvCntOut> %<t_port>
+    #define RECV_IP%<::UDP_RecvCntOut> %<t_ip>
+    #define RECV_BUFFER_SIZE%<::UDP_RecvCntOut> %<t_buffersize>
+    #define LOCAL_PORT_RECV%<::UDP_RecvCntOut> %<t_localport>
+    #define LOCAL_IP_RECV%<::UDP_RecvCntOut> %<t_localip> 
+    %if ISEQUAL(::UDP_RecvCntOut, 0)
+    #define LOST_FRAME_NUM 0
+    %endif
+    %closefile buffer 
+    %<LibSetSourceFileSection(fileC, "Defines", buffer)>
+
+    %openfile buffer
+    int sockfd_recv%<::UDP_RecvCntOut> = -1;
+    struct sockaddr_in recvaddr%<::UDP_RecvCntOut>, loc_recvaddr%<::UDP_RecvCntOut>;
+    socklen_t len%<::UDP_RecvCntOut>;
+    char recv_buffer%<::UDP_RecvCntOut>[RECV_BUFFER_SIZE%<::UDP_RecvCntOut>] = {0};     
+    int recvLen_%<::UDP_RecvCntOut> = 0;       // 接收字节数
+    int recvLost_%<::UDP_RecvCntOut> = 0;      // 连续丢帧清零阈值
+    %closefile buffer    
+    %<LibSetSourceFileSection(fileC, "Declarations", buffer)>
+
+    %assign selfloop = 0
+    %if EXISTS(::send_ip)
+        %if ISEQUAL(::send_ip, %<t_ip>)   
+            %if ISEQUAL(t_reuse_port, 1)    %% 若本地机和远端机都是一个IP，并且使用同一个端口
+                %assign selfloop = 1 
+            %endif
+        %endif
+    %endif
+
+    recvLen_%<::UDP_RecvCntOut> = 0;   // 每次读取UDP数据包之前先清零
+    %if ISEQUAL(selfloop, 0)
+    if(1)
+    {
+        recvLen_%<::UDP_RecvCntOut> = recvfrom(sockfd_recv%<::UDP_RecvCntOut>, recv_buffer%<::UDP_RecvCntOut>, RECV_BUFFER_SIZE%<::UDP_RecvCntOut>, 0, (struct sockaddr *)&recvaddr%<::UDP_RecvCntOut>, &len%<::UDP_RecvCntOut>);
+        if (recvLen_%<::UDP_RecvCntOut> == RECV_BUFFER_SIZE%<::UDP_RecvCntOut>)
+        {
+            %<len> = recvLen_%<::UDP_RecvCntOut>;    
+            memcpy(&%<data>, recv_buffer%<::UDP_RecvCntOut>, RECV_BUFFER_SIZE%<::UDP_RecvCntOut>);
+        }
+        else
+        {
+            if(errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                // 无数据，不视为丢包
+                recvLost_%<::UDP_RecvCntOut> ++;
+                if (recvLost_%<::UDP_RecvCntOut> > LOST_FRAME_NUM)
+                {
+                    memset(&%<data>, 0, RECV_BUFFER_SIZE%<::UDP_RecvCntOut>);  // 接收不到数据连续LOST_FRAME_NUM帧，清空缓存
+                    %<len> = 0;
+                    recvLost_%<::UDP_RecvCntOut> = 0;
+                }
+            }
+            else
+            {
+                // 丢包
+                printf("Data recv lost. Only %d bytes read.\n", recvLen_%<::UDP_RecvCntOut>);
+            }
+        }    
+    }
+    
+    %else
+        %% 收发同端口
+        // 收发使用相同端口
+        if(1) {
+            int recvLen_%<::UDP_RecvCntOut> = recvfrom(%<::sendSocket>, recv_buffer%<::UDP_RecvCntOut>, RECV_BUFFER_SIZE%<::UDP_RecvCntOut>, 0, (struct sockaddr *)&%<::sendAddr>, &len%<::UDP_RecvCntOut>);
+            if (recvLen_%<::UDP_RecvCntOut> < 0) {
+                if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                    recvLost_%<::UDP_RecvCntOut> ++;
+                    if (recvLost_%<::UDP_RecvCntOut> > LOST_FRAME_NUM)
+                    {
+                        // 无数据可以接收
+                        memset(&%<data>, 0, RECV_BUFFER_SIZE%<::UDP_RecvCntOut>);  // 接收不到数据连续LOST_FRAME_NUM帧，清空缓存
+                        %<len> = 0;
+                        recvLost_%<::UDP_RecvCntOut> = 0;
+                    }
+                }
+                else
+                {
+                    // 丢包
+                    perror("recv_buffer%<::UDP_RecvCntOut> recvfrom error!");
+                }
+            } 
+            else  // 接收正常
+            {
+                memcpy(&%<data>, recv_buffer%<::UDP_RecvCntOut>, RECV_BUFFER_SIZE%<::UDP_RecvCntOut>);
+                %<len> = recvLen_%<::UDP_RecvCntOut>;
+            }
+        }
+    %endif
+%endfunction %% Outputs
+
+%function Terminates(block, system) Output
+    close(sockfd_recv%<::UDP_RecvCntOut>);
+%endfunction

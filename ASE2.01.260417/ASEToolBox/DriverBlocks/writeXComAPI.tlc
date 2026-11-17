@@ -1,0 +1,55 @@
+%% File	   : writeXComAPI.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function writeXComAPI.c
+%% Author  : ZQingHua @2025/01/31
+
+%implements "writeXComAPI" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+    %assign data = LibBlockInputSignal(0, "", "", 0)
+    %assign t_data_length = LibBlockInputSignalDimensions(0)
+    %% %assign t_data_length = SFcnParamSettings.r_data_length
+    %assign fileH = LibGetModelDotHFile()
+    %% %openfile buffer
+    %% #define BUFFER_SIZE %<t_data_length[0]>
+    %% %closefile buffer 
+    %<LibSetSourceFileSection(fileH, "Defines", buffer)>   
+
+    %<LibAddToCommonIncludes("SysComLib.h")>
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    %% %assign t_idxComPort = SFcnParamSettings.r_serial_select
+    %assign t_serialName = SFcnParamSettings.r_serialName
+    %assign t_baudRate = SFcnParamSettings.r_baudRate
+    %assign t_databit = SFcnParamSettings.r_databit
+    %assign t_parity = SFcnParamSettings.r_parity
+    %assign t_stopbit = SFcnParamSettings.r_stopbit
+    %assign t_dataLength = SFcnParamSettings.r_dataLength
+    %assign t_sampleTime = SFcnParamSettings.r_sample_time
+    init_serial_tty("/dev/%<t_serialName>",%<t_baudRate>,%<t_databit>,%<t_parity>,%<t_stopbit>, 0, %<t_dataLength>);
+%endfunction %% Start
+
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+    %% %assign t_idxComPort = SFcnParamSettings.r_serial_select
+    %assign t_serialName = SFcnParamSettings.r_serialName
+    %assign t_dataLength = SFcnParamSettings.r_dataLength
+
+    %assign data = LibBlockInputSignal(0, "", "", 0)
+    
+    write_data_to_tty("/dev/%<t_serialName>", &%<data>, %<t_dataLength>);
+
+%endfunction %% Outputs
+    

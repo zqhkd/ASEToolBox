@@ -1,0 +1,138 @@
+{
+    "version": "1.0",
+    "entries": [
+        {
+            "type": "Tab",
+            "id": "aseToolBoxTab",
+            "title": "ASE",
+            "children": [
+                {
+                    "type": "Section",
+                    "title": "Modeling",
+                    "children": [
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "showLibraryBrowserAction"  // R2023a 正确内置动作
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "openModelAdvisorAction"  // R2023a 正确内置动作
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "openModelConfigParamAction"  // R2023a 正确内置动作
+                                },
+                                {
+                                    "type": "PushButton",
+                                    "action": "updateDiagramAction"  // R2023a 正确内置动作
+                                },
+                                {
+                                    "type": "PushButton",
+                                    "action": "findInModelAction"  // R2023a 正确内置动作
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "Section",
+                    "title": "Build & Deploy",
+                    "children": [
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "aseRtwCDeployAction"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "aseOnlyRtwCAction"
+                                },
+                                {
+                                    "type": "PushButton",
+                                    "action": "aseDownDeployAction"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "Section",
+                    "title": "SIMULATION",
+                    "children": [
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "aseStartAction"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "aseStopAction"
+                                }
+                             ]
+                        }
+                    ]
+                },
+                {
+                    "type": "Section",
+                    "title": "TARGET COMPUTER",
+                    "children": [
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "aseQProcessStsAction"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "aseRebootAction"
+                                }
+                            ]
+                        },
+                        {
+                            "type": "Column",
+                            "children": [
+                                {
+                                    "type": "PushButton",
+                                    "action": "aseShutDownAction"
+                                }
+                             ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

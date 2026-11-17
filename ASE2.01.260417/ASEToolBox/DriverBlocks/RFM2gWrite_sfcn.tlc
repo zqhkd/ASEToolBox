@@ -1,0 +1,123 @@
+%% File	   : RFM2gWrite_sfcn.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function RFM2gWrite_sfcn.c
+%% Author  : Hyowinner @2024/11/28
+
+%implements "RFM2gWrite_sfcn" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+    %if EXISTS(::writeCnt)
+        %assign ::writeCnt = ::writeCnt + 1
+    %else
+        %assign ::writeCnt = 0
+    %endif
+    %assign t_length = SFcnParamSettings.r_length
+    %assign t_datatype = SFcnParamSettings.r_datatype - 1
+    %assign t_offset = SFcnParamSettings.r_offset
+    %assign srcFile = LibGetModelDotCFile()
+    
+    %switch t_datatype
+        %case 0
+            %assign dt = "real_T"
+            %break
+        %case 1
+            %assign dt = "float"
+            %break
+        %case 2
+            %assign dt = "int8_T"
+            %break
+        %case 3
+            %assign dt = "uint8_T"
+            %break
+        %case 4
+            %assign dt = "int16_T"
+            %break
+        %case 5
+            %assign dt = "uint16_T"
+            %break
+        %case 6
+            %assign dt = "int32_T"
+            %break
+        %case 7
+            %assign dt = "uint32_T"
+            %break
+        %case 8
+            %assign dt = "bool"
+            %break
+    %endswitch
+    %assign writeBuf = "writeBuffer_%<::writeCnt>"
+    %assign byteNum = "byteNum_%<::writeCnt>"
+
+    %openfile buffer    
+    %<dt> %<writeBuf>[%<t_length>];
+    uint32_T %<byteNum> = sizeof(%<writeBuf>);
+    %closefile buffer
+    %<LibSetSourceFileSection(srcFile, "Definitions", buffer)>
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    
+%endfunction %% Start
+
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+    %if EXISTS(::writeCntOut)
+        %assign ::writeCntOut = ::writeCntOut + 1
+    %else
+        %assign ::writeCntOut = 0
+    %endif
+    %assign t_datatype = SFcnParamSettings.r_datatype - 1
+    %assign t_base_addr = SFcnParamSettings.r_base_addr
+    %assign t_offset = SFcnParamSettings.r_offset
+    %assign t_length = SFcnParamSettings.r_length
+    %switch t_datatype
+        %case 0
+            %assign dt = "real_T"
+            %break
+        %case 1
+            %assign dt = "float"
+            %break
+        %case 2
+            %assign dt = "int8_T"
+            %break
+        %case 3
+            %assign dt = "uint8_T"
+            %break
+        %case 4
+            %assign dt = "int16_T"
+            %break
+        %case 5
+            %assign dt = "uint16_T"
+            %break
+        %case 6
+            %assign dt = "int32_T"
+            %break
+        %case 7
+            %assign dt = "uint32_T"
+            %break
+        %case 8
+            %assign dt = "bool"
+            %break
+    %endswitch
+
+    %assign dataLen = LibBlockInputSignalDimensions(0)
+
+    %assign byteNum = "byteNum_%<::writeCntOut>"    
+    %assign u = LibBlockInputSignalAddr( 0, "", "", 0)    
+    result = RFM2gWrite(Handle, %<t_base_addr>+%<t_offset>, %<u>, %<byteNum>);
+    if(result == RFM2G_SUCCESS)
+    {
+        printf("RFM2gWrite wrote  %u bytes.\n", %<byteNum>);
+    }
+%endfunction %% Outputs

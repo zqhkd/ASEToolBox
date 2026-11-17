@@ -1,0 +1,58 @@
+%% File	   : SerialReceive_sfcn.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function RFM2gInit_sfcn.c
+%% Author  : Hyowinner @2024/11/28
+
+%implements "RFM2gInit_sfcn" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+    %<LibAddToCommonIncludes("stdio.h")>
+    %<LibAddToCommonIncludes("stdlib.h")>
+    %<LibAddToCommonIncludes("string.h")>
+    %<LibAddToCommonIncludes("rfm2g_api.h")>     %% 反射内存卡RFM2G专用头文件
+
+    %assign srcFile = LibGetModelDotCFile()
+    %openfile buffer
+    #define DEVICE "/dev/rfm2g0"
+    %closefile buffer
+    %<LibCacheDefine(buffer)>
+
+    %openfile buffer
+    RFM2G_STATUS result;    /* 读写成功与否的标志位  */
+    RFM2GHANDLE Handle;     /* RFM板卡设备句柄 */
+    %closefile buffer
+    %<LibSetSourceFileSection(srcFile, "Definitions", buffer)>
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    result = RFM2gOpen(DEVICE, &Handle);    
+    if(result != RFM2G_SUCCESS)
+    {
+        printf("ERROR: RFM2gOpen() failed.\n");
+        printf("ERROR MSG: %s\n", RFM2gErrorMsg(result));
+        %% return result;          %% TRFM2g_initialize()函数无返回值，此处需注释掉，否则有警告错误。
+    }
+%endfunction %% Start
+
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+   
+%endfunction %% Outputs
+
+
+%% Function: Terminate =============================================================================
+%%
+%function Terminate(block, system) Output
+    RFM2gClose(&Handle);    
+%endfunction %% Terminate

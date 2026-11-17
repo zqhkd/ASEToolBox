@@ -1,0 +1,327 @@
+CompiledModel {
+  Name			  "uartDemo"
+  OrigName		  "uartDemo"
+  PrmModelName		  SLDataModelName(uartDemo)
+  IsPreCodeGenPhase	  1
+  ModelReferenceTargetType "NONE"
+  DataTypes {
+    DataTypeDefaults {
+      RecordType	      "DataType"
+    }
+    ElementsDefaults {
+      RecordType	      "DataTypeElements"
+    }
+    NumDataTypes	    17
+    DataType {
+      Id		      0
+      RecordIdx		      [0]
+    }
+    DataType {
+      Id		      1
+      RecordIdx		      [1]
+    }
+    DataType {
+      Id		      2
+      RecordIdx		      [2]
+    }
+    DataType {
+      Id		      3
+      RecordIdx		      [3]
+    }
+    DataType {
+      Id		      4
+      RecordIdx		      [4]
+    }
+    DataType {
+      Id		      5
+      RecordIdx		      [5]
+    }
+    DataType {
+      Id		      6
+      RecordIdx		      [6]
+    }
+    DataType {
+      Id		      7
+      RecordIdx		      [7]
+    }
+    DataType {
+      Id		      8
+      RecordIdx		      [8]
+    }
+    DataType {
+      Id		      9
+      RecordIdx		      [9]
+    }
+    DataType {
+      Id		      10
+      RecordIdx		      [10]
+    }
+    DataType {
+      Id		      11
+      RecordIdx		      [11]
+    }
+    DataType {
+      Id		      12
+      RecordIdx		      [12]
+    }
+    DataType {
+      Id		      13
+      RecordIdx		      [13]
+    }
+    DataType {
+      Id		      14
+      RecordIdx		      [14]
+    }
+    DataType {
+      Id		      15
+      RecordIdx		      [15]
+    }
+    DataType {
+      Id		      16
+      RecordIdx		      [16]
+    }
+  }
+  Solver		  FixedStepDiscrete
+  SolverType		  FixedStep
+  StartTime		  0.0
+  StopTime		  rtInf
+  ExprCommentInfoDefaults {
+    SysIdxList		    []
+    BlkIdxList		    []
+    PortIdxList		    []
+  }
+  ExprCommentSrcIdxDefaults {
+    SysIdx		    -1
+    BlkIdx		    -1
+    PortIdx		    -1
+  }
+  BlockDefaults {
+    UserDefinedRWork	    0
+    UserDefinedIWork	    0
+    UserDefinedPWork	    0
+    NumRWorkDefines	    -1
+    NumIWorkDefines	    -1
+    NumPWorkDefines	    -1
+    RecordType		    "Block"
+    InMask		    no
+    ExecuteBlockFcns	    1
+    UseTLC		    0
+    AccessesDataThatPreservesDims 0
+    DeletedInIR		    0
+    AlgebraicLoopId	    0
+    PortBasedSampleTimes    no
+    ContStates		    [0,0,0]
+    ModeVector		    [0,-1]
+    RWork		    [0,-1]
+    IWork		    [0,-1]
+    PWork		    [0,-1]
+    DiscStates		    [0,-1]
+    MassMatrixPr	    [0,-1]
+    NumDWork		    0
+    NumNonsampledZCs	    0
+    ZCEvents		    [0,0]
+    NumBlkZcRecs	    0
+    RollRegions		    []
+    RollRegionTypes	    []
+    NumDataInputPorts	    0
+    NumControlInputPorts    0
+    NumDataOutputPorts	    1
+    Parameters		    [0,0]
+    NumParameterGroups	    0
+    Description		    []
+    PolySpaceStartComment   []
+    PolySpaceEndComment	    []
+    ReducedBlocksConnected  []
+    HaveBlockComment	    0
+    InFixptMode		    0
+    GrSrc		    [-1, -1]
+    NeedOutputsFcnInMdlStart 0
+    AsyncSfcn		    0
+    TriggeredBlockConstantSampleTimePorts []
+    HasSymbolicDims	    0
+    OutputBlockFcnIdx	    -1
+    HasLocalSolver	    no
+    LocalSolverInputCompensationMode 0
+    LocalSolverOutputCompensationMode 0
+  }
+  NumSystems		  1
+  tSS_LONG		  -2147483648
+  tSS_ULONG		  -2147483645
+  tSS_LONG_LONG		  -2147483644
+  tSS_ULONG_LONG	  -2147483643
+  tSS_VOID		  -2147483647
+  tSS_SIZET		  -2147483646
+  tSS_UINTEGER		  -2147483642
+  tSS_CHAR		  -2147483641
+  tSS_UCHAR		  -2147483640
+  tSS_TIME		  -2147483639
+  tSS_DOUBLE		  0
+  tSS_SINGLE		  1
+  tSS_INT8		  2
+  tSS_UINT8		  3
+  tSS_INT16		  4
+  tSS_UINT16		  5
+  tSS_INT32		  6
+  tSS_UINT32		  7
+  tSS_BOOLEAN		  8
+  tSS_FCN_CALL		  9
+  tSS_INTEGER		  10
+  tSS_POINTER		  11
+  tSS_ACTION		  12
+  tSS_TIMER_UINT32_PAIR	  13
+  tSS_INVALID_DATA_TYPE_ID -10
+  BlockHierarchyMap {
+    Subsystem {
+      Name		      "<Root>"
+      Block {
+	Name			"<Root>/UDP_Send"
+      }
+      Block {
+	Name			"<Root>/UDXComIn"
+      }
+    }
+  }
+  DWorkDefaults {
+    RecordType		    "BlockDWork"
+  }
+  ParameterDefaults {
+    RecordType		    "BlockParameter"
+    Tunable		    no
+  }
+  DataInputPortDefaults {
+    RecordType		    "DataInputPort"
+  }
+  DataOutputPortDefaults {
+    RecordType		    "DataOutputPort"
+  }
+  SampleTimeDefaults {
+    NonInlinedModelWideEvent -1
+  }
+  SampleTime {
+    TID			    0
+  }
+  ModelIsLinearlyImplicit no
+  GenUtilsSrcInSharedLocation 0
+  System {
+    SystemIdx		    0
+    Name		    "<Root>"
+    Type		    "root"
+    FileNameOwnerIdx	    0
+    SystemNamespaceFlag	    0
+    NumBlocks		    2
+    Block {
+      Type		      "S-Function"
+      Name		      "<Root>/UDP_Send"
+      RecordType	      "CompiledBlock"
+      RecordIdx		      [0, 0]
+      BlockIdx		      [0, 0, 0]
+      TID		      0
+      PID		      -1
+      firstEntryOfTsMapIsGCD  yes
+      ExecuteBlockFcns	      0
+      MaskType		      "UDP Send"
+      RollRegions	      [0:11]
+      ParamSettings {
+	FunctionName		UDPSend_sfcn
+	FunctionType		"C-MEX"
+	Inlined			yes
+	ExplicitFCSSCtrl	no
+	Asynchronous		no
+	FunctionLevel		2
+	DirectFeedthrough	[no]
+	UsingUPtrs		[yes]
+	InputContiguous		[yes]
+	DataStoreSource		[]
+	DataStoreGlobalDSM	[]
+	GlobalDataStoreSource	[]
+	SampleTimesToSet	Matrix(1,2)
+[[0, 0];]
+	DynamicallySizedVectors	["U0", "NonsampledZCs"]
+	SFcnmdlRoutines		["mdlInitializeSizes", "mdlInitializeSampleTimes", "mdlOutputs", "mdlTerminate", "mdlRTW"]
+	AliasDataTypeCompliant	0
+	HasMdlProjection	no
+	IsLinearlyImplicit	no
+	MassMatrixType		0
+	HasVariableSampleTime	no
+	WillBeDynamicallyLoaded	no
+	ExpectsSeparateComplexMxArrays yes
+	CallSimulinkStateWithContStates	no
+      }
+      NumSFcnSysOutputCalls   0
+      NumSFcnSysOutputCallDsts 0
+      SFcnParamSettings {
+	r_localport		8080
+	r_localip		"\"192.168.0.7\""
+	r_port			9090
+	r_ip			"\"192.168.0.2\""
+	r_buffersize		12
+      }
+      NumDataInputPorts	      1
+      DataInputPort {
+	RecordIdx		[0, 0, 0]
+	RollRegions		[0:11]
+      }
+      NumDataOutputPorts      0
+      NumDWork		      0
+      Parameters	      [0]
+    }
+    Block {
+      Type		      "S-Function"
+      Name		      "<Root>/UDXComIn"
+      RecordType	      "CompiledBlock"
+      RecordIdx		      [0, 1]
+      BlockIdx		      [0, 0, 1]
+      TID		      0
+      PID		      -1
+      firstEntryOfTsMapIsGCD  yes
+      ExecuteBlockFcns	      0
+      MaskType		      "CP-116E-A接收模块"
+      RollRegions	      [0:11]
+      ParamSettings {
+	FunctionName		readUDXComAPI
+	FunctionType		"C-MEX"
+	Inlined			yes
+	ExplicitFCSSCtrl	no
+	Asynchronous		no
+	FunctionLevel		2
+	DirectFeedthrough	[]
+	UsingUPtrs		[]
+	InputContiguous		[]
+	DataStoreSource		[]
+	DataStoreGlobalDSM	[]
+	GlobalDataStoreSource	[]
+	SampleTimesToSet	Matrix(1,2)
+[[0, 0];]
+	DynamicallySizedVectors	["NonsampledZCs"]
+	SFcnmdlRoutines		["mdlInitializeSizes", "mdlInitializeSampleTimes", "mdlOutputs", "mdlTerminate", "mdlRTW"]
+	AliasDataTypeCompliant	0
+	HasMdlProjection	no
+	IsLinearlyImplicit	no
+	MassMatrixType		0
+	HasVariableSampleTime	no
+	WillBeDynamicallyLoaded	no
+	ExpectsSeparateComplexMxArrays yes
+	CallSimulinkStateWithContStates	no
+      }
+      NumSFcnSysOutputCalls   0
+      NumSFcnSysOutputCallDsts 0
+      SFcnParamSettings {
+	r_serialName		ttyUSB0
+	r_baudRate		460800
+	r_parity		1
+	r_databit		8
+	r_stopbit		1
+	r_data_length		12
+	r_frame_head		43605U
+	r_sample_time		1.0
+      }
+      NumDataInputPorts	      0
+      NumDataOutputPorts      1
+      DataOutputPort {
+	RecordIdx		[0, 1, 0]
+      }
+      NumDWork		      0
+      Parameters	      [0]
+    }
+  }
+}

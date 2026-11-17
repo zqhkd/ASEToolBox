@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<obj>
+   <Group>
+      <ID>TServoSmoothInLoop/ASEMonitorOut</ID>
+      <FrameID>10</FrameID>
+      <SignalNumber>5</SignalNumber>
+      <SignalName>
+         <Name_1>H</Name_1>
+         <Name_2>IMUWz</Name_2>
+         <Name_3>Wz</Name_3>
+         <Name_4>Dz</Name_4>
+         <Name_5>FeedDz</Name_5>
+      </SignalName>
+   </Group>
+</obj>
+<!--AFC5_UDP_scope_SignalNames-->

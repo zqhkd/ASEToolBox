@@ -1,0 +1,52 @@
+V2.01.260417（ASEToolBox版本23.21/2025b）
+(1)	新增UDXComIn模块，可重新配置帧头。解决原XComIn模块固定帧头为0xA5DA，不方便适配其它设备问题； 
+（需要更新仿真主板ASETarget程序版本2.01.260417，同时还需更新ASEToolBox工具箱程序，使用uartDemo.slx测试）
+
+V2.01.251201（ASEToolBox版本23.17/2025b）
+(1)	修复ASEMONITORIN只有一个信号输入时报错。原因是当时这部分代码直接从DTCOMIN的移植过来，DTCOMIN有两个端口，而ASEMONITORIN只有一个端口，因此报错。更新了aseUDPInSignal.m和MsgUDPInSignal.m这两个程序；
+(2)	ASEToolbox中添加了ACEModule模块，实现对三轴电动转台TurnTable、飞控的IMU模块、ACE系统的舵机控制板（6路舵偏控制指令、1路LED指示灯控制指令）等的控制；增加了AerocraftModel模块，包含了可直接部署到ASE实时仿真机的6DOF案例导弹模型；
+(3)	在DEMO目录中包含了利用AFCToolbox工具箱部署的舵机控制板程序ACEServoCard.slx。
+(4)	在DEMO目录下，提供了利用ASEToolbox工具箱部署的相关测试程序：
+  	纯数学仿真程序MissileMathSim.slx；
+  	和舵机控制板进行舵偏控制、指示灯控制的测试程序TservoComnication.slx；
+  	舵机在回路的半实物仿真程序TservoSmoothInLoop.slx。
+以上程序均已利用舵机控制板（产品ID: 25501）和EMB3492实时仿真机进行了多轮次测试验证，均工作正常！
+
+V2.01.250915（ASEToolBox版本22.60/2025a）
+(1) 完善修改实时仿真机的ASETarget模块中的串口程序；
+(2) ASEMonitorOut模块的UDP发送模块signalcopy前的gain模块更换为uint8模块，确保代码生成正常且直观显示。
+
+V2.01.250915（ASEToolBox版本22.40/2025a）
+(1) 修正ASEMonitorIn模块和ASEMonitorOut模块UDP发送/接收端口号相同时编译出错（示例程序TUdpSendRcv.slx：该示例程序已用通信助手和地面站软件进行了综合测试）
+(2) 修正示例程序TUdpSendRcv.slx中间部分测试程序网口发送内容仅第1字节正常问题（需在发送模块signalcopy前增加一个gain模块，否则生成代码错误）。
+
+V2.01.250913（ASEToolBox版本22.20/2025a）
+(1) 修正UDP_Receive和ASEMonitorIn模块的UDP发送/接收端口号相同时不稳定传输问题（示例程序TUdpSendRcv.slx：该示例程序已用通信助手和地面站软件进行了综合测试）
+(2) 修正了UDP_Send模块初始化未在初始化程序中设置UDP为非阻塞模式问题；
+(3) 修复了ASEMonitorIn参数名称存储未处理帧类型码问题。
+
+V2.01.250612(ASEToolBox版本18.166):
+(1) 在ASE部署菜单中增加了目标系统检测，防止和AFC目标系统的混淆错用。
+
+V1.01.250609(ASEToolBox版本18.166):
+(1) 由于分布式无人机集群仿真各无人机节点之间互传信息时会出现仿真机随机死机现象（有时3分钟、有时5分钟、有时十几分钟，死机时间和仿真节点数、仿真状态等多有关系）。通过避免阻塞式read的盲等待,来完善接收线程处理的健壮性。
+
+V1.01.250523A(ASEToolBox版本18.159):
+(1) 更改了aseUDPOutSignal以便在地面站显示用xml文件中包含帧类型码信息；
+(2) 更改了ASETarget的rta_main.c程序中的仿真算法任务线程的堆栈空间由原来的32768扩大至98304字节。
+
+
+V1.01.250523(ASEToolBox版本18.159):
+(1) 配合组织网模拟器排故，撰写节点间通讯示例UAVR5PV0NodeCom250517程序；
+(2) 实现ASEMonitorIn和ASEMonitorOut模块能够自动生成代码，并利用TUdpMonitor.slx进行了测试验证。
+
+V1.01.250519:
+(1) 重新调整ASE-2目录结构;
+(2) 重新撰写20架无人机部署在4台仿真机（每台包括2个实物飞控+3个虚拟飞控）同步仿真问题，冻结UAVR8PV12SysSim250512示例程序。
+
+V1.01.250506(稳定运行版):
+(1) 基于ASEHost1.03.250412升级至ASE-2版本，依据AFC-5开发框架进行开发。完成修改后连续发布两版ASE2.01.250415/16；
+(2) 由于存在ASEProjectPath发布路径、ASETarget目标运行调试库与运行库不一致导致程序运行错误等故障，根据需求适当整理后，解决两台凌华工控机同步示例；
+(3) 整理并添加20架无人机联试仿真示例ASEjiu_250429；
+(4) 更改了ASE_250429程序的udp的IP地址配置错误问题，并经过了运行测试。
+

@@ -1,0 +1,137 @@
+%% File	   : RFM2gRead_sfcn.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function RFM2gRead_sfcn.c
+%% Author  : Hyowinner @2024/11/28
+
+%implements "RFM2gRead_sfcn" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+    %if EXISTS(::readCnt)
+        %assign ::readCnt = ::readCnt + 1
+    %else
+        %assign ::readCnt = 0
+    %endif
+    %assign t_length = SFcnParamSettings.r_length
+    %assign t_datatype = SFcnParamSettings.r_datatype - 1
+    %assign t_offset = SFcnParamSettings.r_offset
+    %assign srcFile = LibGetModelDotCFile()
+    
+    %switch t_datatype
+        %case 0
+            %assign dt = "real_T"
+            %break
+        %case 1
+            %assign dt = "float"
+            %break
+        %case 2
+            %assign dt = "int8_T"
+            %break
+        %case 3
+            %assign dt = "uint8_T"
+            %break
+        %case 4
+            %assign dt = "int16_T"
+            %break
+        %case 5
+            %assign dt = "uint16_T"
+            %break
+        %case 6
+            %assign dt = "int32_T"
+            %break
+        %case 7
+            %assign dt = "uint32_T"
+            %break
+        %case 8
+            %assign dt = "bool"
+            %break
+    %endswitch
+    %assign readBuf = "readBuffer_%<::readCnt>"
+    %assign byteNum = "byteNumRead_%<::readCnt>"
+    
+    %openfile buffer    
+    %<dt> %<readBuf>[%<t_length>];
+    uint32_T %<byteNum> = sizeof(%<readBuf>);
+    %closefile buffer
+    %<LibSetSourceFileSection(srcFile, "Definitions", buffer)>
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    
+%endfunction %% Start
+
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+    %if EXISTS(::readCntOut)
+        %assign ::readCntOut = ::readCntOut + 1
+    %else
+        %assign ::readCntOut = 0
+    %endif
+    %assign t_datatype = SFcnParamSettings.r_datatype - 1
+    %assign t_base_addr = SFcnParamSettings.r_base_addr
+    %assign t_offset = SFcnParamSettings.r_offset
+    %assign t_length = SFcnParamSettings.r_length   %% 指定数据类型长度的字节数
+    
+    %switch t_datatype
+        %case 0
+            %assign dt = "real_T"
+            %break
+        %case 1
+            %assign dt = "float"
+            %break
+        %case 2
+            %assign dt = "int8_T"
+            %break
+        %case 3
+            %assign dt = "uint8_T"
+            %break
+        %case 4
+            %assign dt = "int16_T"
+            %break
+        %case 5
+            %assign dt = "uint16_T"
+            %break
+        %case 6
+            %assign dt = "int32_T"
+            %break
+        %case 7
+            %assign dt = "uint32_T"
+            %break
+        %case 8
+            %assign dt = "bool"
+            %break
+    %endswitch
+
+    %assign dataLen = LibBlockOutputSignalDimensions(0)
+    %assign byteNum = "byteNumRead_%<::readCntOut>"    %% 读取缓存的长度
+    %assign readBuf = "readBuffer_%<::readCntOut>"
+    
+
+    result = RFM2gRead(Handle, %<t_offset> +  %<t_base_addr>, %<readBuf>, %<t_length>);
+    if(result == RFM2G_SUCCESS)
+    {
+        %% printf("RFM2gRead read  %u bytes.\n", %<byteNum>);
+        %% for(int i = 0; i < %<byteNum>; i++)
+        %% {
+        %%     printf("%<readBuf>[%u] = %u\t", i, %<readBuf>[i]);
+        %% }
+        %% printf("\n");
+    }
+
+    // 数组逐个元素赋值
+    %foreach idx = t_length
+        %assign y = LibBlockOutputSignal(0, "", "", idx)
+        %<y> = %<readBuf>[%<idx>];    
+    %endforeach
+
+%endfunction %% Outputs

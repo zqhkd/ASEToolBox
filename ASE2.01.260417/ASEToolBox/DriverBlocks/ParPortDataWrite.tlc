@@ -1,0 +1,76 @@
+%% File	   : ParPortDataWrite.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function ParPortDataWrite.c
+%% Author  : Hyowinner @2025/01/23
+
+%implements "ParPortDataWrite" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+    %<LibAddToCommonIncludes("stdio.h")>
+    %<LibAddToCommonIncludes("stdlib.h")>
+    %<LibAddToCommonIncludes("fcntl.h")>
+    %<LibAddToCommonIncludes("sys/ioctl.h")>
+    %<LibAddToCommonIncludes("linux/ppdev.h")>
+    %<LibAddToCommonIncludes("unistd.h")>
+    
+    
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+    %if !EXISTS(::parportFd)  %% 仅当当前模块是首个运行的时候才打开端口
+        %assign ::parportFd = 1
+        %assign fileC = LibGetModelDotCFile()
+        %if !EXISTS(::cnt)
+            %assign ::cnt = 0
+        %else
+            %assign ::cnt = ::cnt + 1
+        %endif
+
+        %openfile buffer
+        int fd%<::cnt>;
+        %closefile buffer
+        %<LibSetSourceFileSection(fileC, "Defines", buffer)>
+    %endif
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+     %if !EXISTS(::parport)  %% 仅当当前模块是首个运行的时候才打开端口
+        %assign ::parport = 1
+        %assign device = SFcnParamSettings.r_par_select
+        // 以 root 权限打开并行端口
+        fd%<::cnt> = open("/dev/parport%<device - 1>", O_RDWR);
+        if (fd%<::cnt> == -1) {
+        perror("打开并行端口失败");
+        exit(EXIT_FAILURE);
+        }
+
+        // 确保并行端口被成功占用
+        if (ioctl(fd%<::cnt>, PPCLAIM) == -1) {
+        perror("占用并行端口失败");
+        close(fd%<::cnt>);
+        exit(EXIT_FAILURE);
+        }
+    %endif
+
+%endfunction %% Start
+
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+
+    %assign y = LibBlockInputSignalAddr(0, "", "", 0)
+    // 读取数据寄存器的值
+    if (ioctl(fd%<::cnt>, PPWDATA, %<y>) == -1) {
+    perror("写入数据寄存器失败");
+    // 释放并行端口
+    ioctl(fd%<::cnt>, PPRELEASE);
+    close(fd%<::cnt>);
+    exit(EXIT_FAILURE);
+    }
+%endfunction %% Outputs

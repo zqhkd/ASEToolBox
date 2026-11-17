@@ -1,0 +1,5 @@
+    remoteBinDirUnix = '/home/administrator/projects/ASETarget';
+    userName = 'administrator';
+    passWord = 'admin123';
+    ip = '192.168.0.7';
+    ver = 'V2.01.260417';

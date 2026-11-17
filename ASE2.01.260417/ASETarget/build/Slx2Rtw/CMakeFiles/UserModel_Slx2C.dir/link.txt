@@ -1,0 +1,2 @@
+/usr/bin/ar qc ../lib/libUserModel_Slx2C.a CMakeFiles/UserModel_Slx2C.dir/Src/AseSlx2UbuntuSysAPI.c.o CMakeFiles/UserModel_Slx2C.dir/Src/uartDemo.c.o CMakeFiles/UserModel_Slx2C.dir/Src/uartDemo_capi.c.o
+/usr/bin/ranlib ../lib/libUserModel_Slx2C.a

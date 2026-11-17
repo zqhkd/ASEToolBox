@@ -1,0 +1,4 @@
+// 请不要改动左边变量名称，以下字符均为英文方式录入，不要使用中文录入方式; 录入时尽量保持现有缩进格式
+    ASE_SYSTEM_MAIN_VER  =  2.01;
+    ASE_SYSTEM_DATE_VER  =  260417;   
+    ASE_SYSTEM_SN_ID     =  342890;   

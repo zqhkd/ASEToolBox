@@ -1,0 +1,90 @@
+%% File	   : initXComAPI.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function initXComAPI.c
+%% Author  : Hyowinner @2024/11/13
+
+%implements "initXComAPI" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+    %<LibAddToCommonIncludes("stdio.h")>
+    %<LibAddToCommonIncludes("stdlib.h")>
+    %<LibAddToCommonIncludes("string.h")>
+    %<LibAddToCommonIncludes("unistd.h")>
+    %<LibAddToCommonIncludes("fcntl.h")>
+    %<LibAddToCommonIncludes("errno.h")>
+    %<LibAddToCommonIncludes("termios.h")>
+    %<LibAddToCommonIncludes("sys/ioctl.h")>
+    %<LibAddToCommonIncludes("SysComLib.h")>     %% 供SerialReceive模块和SerialSend模块使用
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    %assign t_serial_select = SFcnParamSettings.r_serial_select
+    %assign t_baudrate = SFcnParamSettings.r_baudrate
+    %assign t_parity = SFcnParamSettings.r_parity
+    %assign t_databit = SFcnParamSettings.r_databit
+    %assign t_stopbit = SFcnParamSettings.r_stopbit
+
+    %assign bdtable = ["921600","576000","500000","460800","230400","115200"]
+
+    %switch t_parity
+        %case 1
+            %assign temp = "N"
+            %break
+        %case 2
+            %assign temp = "O"
+            %break
+        %case 3
+            %assign temp = "E"
+            %break
+        %case 4
+            %assign temp = "N"
+            %break
+        %case 5
+            %assign temp = "N"
+            %break
+    %endswitch
+
+    %assign srcFile = LibGetModelDotCFile()
+
+    %openfile buffer
+    #define MAX_BUFFER_LENGTH 512
+    %closefile buffer
+    %<LibSetSourceFileSection(srcFile, "Defines", buffer)>
+
+    %openfile buffer
+    const char *device = "/dev/ttyMUE%<t_serial_select - 1>";
+    int baudrate = B%<bdtable[t_baudrate - 1]>;
+    int data_bits = %<t_databit>;
+    char parity = '%<temp>';
+    int stop_bits = %<t_stopbit>;
+
+    char receive_buffer[MAX_BUFFER_LENGTH];      /* 接收缓存  */
+    %closefile buffer
+
+    %<LibSetSourceFileSection(srcFile, "Declarations", buffer)>
+
+    init_serial_port(device, baudrate, data_bits, parity, stop_bits);
+  
+%endfunction %% Start
+
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+
+%endfunction %% Outputs
+
+%% Function: Terminate =============================================================================
+%%
+%function Terminate(block, system) Output
+    close(fd);
+%endfunction %% Terminate

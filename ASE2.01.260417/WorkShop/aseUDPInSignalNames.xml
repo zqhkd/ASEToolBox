@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<obj>
+   <Group>
+      <ID>ASE_TurntableAndServoControl/ASEMonitorIn7</ID>
+      <FrameID>4</FrameID>
+      <SignalNumber>8</SignalNumber>
+      <SignalName>
+         <Name_1>S1</Name_1>
+         <Name_2>S2</Name_2>
+         <Name_3>S3</Name_3>
+         <Name_4>S4</Name_4>
+         <Name_5>S5</Name_5>
+         <Name_6>S6</Name_6>
+         <Name_7>S7</Name_7>
+         <Name_8>S8</Name_8>
+      </SignalName>
+   </Group>
+</obj>
+<!--ASE_UDPIn_SignalNames-->

@@ -1,0 +1,124 @@
+%% File	   : ParPortDataRead.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function ParPortDataRead.c
+%%      To read data register value from ParPort0
+%% Modification: Add function for external trigger source. No code generated here then.
+%% Author  : Hyowinner @2025/01/14~2025/03/15
+
+%implements "ParPortDataRead" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+    %<LibAddToCommonIncludes("stdio.h")>
+    %<LibAddToCommonIncludes("stdlib.h")>
+    %<LibAddToCommonIncludes("fcntl.h")>
+    %<LibAddToCommonIncludes("sys/ioctl.h")>
+    %<LibAddToCommonIncludes("linux/ppdev.h")>
+    %<LibAddToCommonIncludes("unistd.h")>
+    %assign t_ext_trigger = SFcnParamSettings.r_ext_trigger
+    %assign t_Trgger_bit = SFcnParamSettings.r_chanelNo + 3   %% 选择框中的通道号是从S3开始的
+    %if !ISEQUAL(t_ext_trigger, 0)  %% 使用外部时钟源的时候才生成代码
+    %% Place a #define in the model's header file
+        %% %openfile buffer
+        %% #define EXTERN_TRIGGER
+        %% %closefile buffer
+        %% %<LibAddToCommonDefines(buffer)>
+
+        %% 只能使用LibCacheDefine将宏定义写入_private.h文件，不能用LibAddToCommonDefines写入主头文件，尝试了多种方法都无法解决，暂时用一下方案处理
+        %openfile buffer
+        #define EXTERN_TRIGGER
+        #define TRIGGER_BIT    %<t_Trgger_bit>
+        %closefile buffer
+        %<LibAddToFile("ParPortExtTrigger.h", buffer)>
+        %<LibAddToCommonIncludes("ParPortExtTrigger.h")>    
+    %endif
+        
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+    %assign t_ext_trigger = SFcnParamSettings.r_ext_trigger
+    %if ISEQUAL(t_ext_trigger, 0)  %% 不使用外部时钟源的时候才生成代码
+        %if !EXISTS(::parportFd)  %% 仅当当前模块是首个运行的时候才打开端口
+            %assign ::parportFd = 1
+            %assign fileC = LibGetModelDotCFile()
+            %if !EXISTS(::cnt)
+                %assign ::cnt = 0
+            %else
+                %assign ::cnt = ::cnt + 1
+            %endif
+
+            %openfile buffer
+            int fd%<::cnt>;
+            %closefile buffer
+            %<LibSetSourceFileSection(fileC, "Defines", buffer)>
+        %endif
+    %endif
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    %assign t_ext_trigger = SFcnParamSettings.r_ext_trigger
+    %if ISEQUAL(t_ext_trigger, 0)  %% 不使用外部时钟源的时候才生成代码
+        %if !EXISTS(::parport)  %% 仅当当前模块是首个运行的时候才打开端口
+            %assign ::parport = 1
+
+            %assign device = SFcnParamSettings.r_par_select
+            // 以 root 权限打开并行端口
+            fd%<::cnt> = open("/dev/parport%<device - 1>", O_RDWR);
+            if (fd%<::cnt> == -1) {
+                perror("打开并行端口失败");
+                exit(EXIT_FAILURE);
+            }
+            // 确保并行端口被成功占用
+            if (ioctl(fd%<::cnt>, PPCLAIM) == -1) {
+                perror("占用并行端口失败");
+                close(fd%<::cnt>);
+                exit(EXIT_FAILURE);
+            }
+            %% // 配置数据寄存器为输入方向
+            %% unsigned char ctrl;
+            %% if((ioctl(fd%<::cnt>, PPRCONTROL, &ctrl) == -1) {
+            %%     perror("读取控制奇存器失败");
+            %%     close(fd%<::cnt>);
+            %%     exit(EXIT_FAILURE);
+            %% }
+            %% ctrl &= ~0x04 ;
+            %% if((ioctl(fd%<::cnt>, PPRCONTROL, &ctrl) == -1) {
+            %%     perror("配置控制奇存器失败");
+            %%     close(fd%<::cnt>);
+            %%     exit(EXIT_FAILURE);
+            %% }
+        %endif
+    %endif
+%endfunction %% Start
+
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+    %assign t_ext_trigger = SFcnParamSettings.r_ext_trigger
+    %if ISEQUAL(t_ext_trigger, 0)  %% 不使用外部时钟源的时候才生成代码
+        %assign y = LibBlockOutputSignalAddr(0, "", "", 0)
+        %% 注释byzhuxh 20250312，DI读取由8位数据寄存器修改为5位的状态寄存器
+        %% // 读取数据寄存器的值
+        %% if (ioctl(fd%<::cnt>, PPRDATA, %<y>) == -1) {
+        %%     perror("读取数据寄存器失败");
+        %%     // 释放并行端口
+        %%     ioctl(fd%<::cnt>, PPRELEASE);
+        %%     close(fd%<::cnt>);
+        %%     exit(EXIT_FAILURE);
+        %% }
+
+        // 注释byzhuxh，DI读取由8位数据寄存器修改为5位的状态寄存器
+        // 读取状态寄存器的状态（忽略ACK位）
+        if (ioctl(fd%<::cnt>, PPRSTATUS, %<y>)) {
+            perror("ioctl PPRSTATUS");
+            ioctl(fd%<::cnt>, PPRELEASE);
+            close(fd%<::cnt>);
+            exit(EXIT_FAILURE);
+        }
+    %endif
+%endfunction %% Outputs

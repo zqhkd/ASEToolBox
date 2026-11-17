@@ -1,0 +1,125 @@
+{
+    "version": "1.0",
+    "entries": [
+        {
+            "type": "Action",
+            "id": "aseRtwCDeployAction",
+            "text": "AutoDeploy",
+            "description": "RtwC&Deploy To ASETarget",
+            "icon": "aseRtwCDeployIcon",
+            "command": "aseRtwCDeploy",
+            "commandType": "Script"
+        },
+        {
+            "type": "Icon",
+            "id": "aseRtwCDeployIcon",
+            "icon16": "aseRtwCDeploy_16.png",
+            "icon24": "aseRtwCDeploy_24.png"
+        },
+        {
+            "type": "Action",
+            "id": "aseOnlyRtwCAction",
+            "text": "OnlyRtwC",
+            "description": "Only build user model To C code",
+            "icon": "aseOnlyRtwCIcon",
+            "command": "aseOnlyRtwC",
+            "commandType": "Script"
+        },
+        {
+            "type": "Icon",
+            "id": "aseOnlyRtwCIcon",
+            "icon16": "aseOnlyRtwC_16.png",
+            "icon24": "aseOnlyRtwC_24.png"
+        },
+        {
+            "type": "Action",
+            "id": "aseDownDeployAction",
+            "text": "DownCToASETarget",
+            "description": "Down Curren user model's C to ASETarget and Deploy",
+            "icon": "aseDownDeployIcon",
+            "command": "aseDownDeploy",
+            "commandType": "Script"
+        },
+        {
+            "type": "Icon",
+            "id": "aseDownDeployIcon",
+            "icon16": "aseDownDeploy_16.png",
+            "icon24": "aseDownDeploy_24.png"
+        },
+        {
+            "type": "Action",
+            "id": "aseStartAction",
+            "text": "Run ASETarget",
+            "description": "Run ASETarget directly",
+            "icon": "aseStartIcon",
+            "command": "aseRun",
+            "commandType": "Script"
+        },
+        {
+            "type": "Icon",
+            "id": "aseStartIcon",
+            "icon16": "aseRun_16.png",
+            "icon24": "aseRun_24.png"
+        },
+        {
+            "type": "Action",
+            "id": "aseStopAction",
+            "text": "Stop ASETarget",
+            "description": "Stop ASETarget!",
+            "icon": "aseStopIcon",
+            "command": "aseStop",
+            "commandType": "Script"
+        },
+        {
+            "type": "Icon",
+            "id": "aseStopIcon",
+            "icon16": "aseStop_16.png",
+            "icon24": "aseStop_24.png"
+        },
+        {
+            "type": "Action",
+            "id": "aseQProcessStsAction",
+            "text": "Query AseProcess",
+            "description": "Query ASETarget's Running Process",
+            "icon": "aseProcessStsIcon",
+            "command": "aseQProcessSts",
+            "commandType": "Script"
+        },
+        {
+            "type": "Icon",
+            "id": "aseProcessStsIcon",
+            "icon16": "aseProcessSts_16.png",
+            "icon24": "aseProcessSts_24.png"
+        },
+        {
+            "type": "Action",
+            "id": "aseRebootAction",
+            "text": "Reboot AseTarget",
+            "description": "Reboot ASETarget Computer!",
+            "icon": "aseRebootIcon",
+            "command": "aseReboot",
+            "commandType": "Script"
+        },
+        {
+            "type": "Icon",
+            "id": "aseRebootIcon",
+            "icon16": "aseReboot_16.png",
+            "icon24": "aseReboot_24.png"
+        },
+        {
+            "type": "Action",
+            "id": "aseShutDownAction",
+            "text": "ShutDown ASETarget",
+            "description": "Shut Down ASETarget  Computer!",
+            "icon": "aseShutDownIcon",
+            "command": "aseShutDown",
+            "commandType": "Script"
+        },
+        {
+            "type": "Icon",
+            "id": "aseShutDownIcon",
+            "icon16": "aseShutDown_16.png",
+            "icon24": "aseShutDown_24.png"
+        }
+    ]
+}

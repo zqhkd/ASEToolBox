@@ -1,0 +1,202 @@
+%% File	   : UDPSend_sfcn.tlc
+%% Abstract:
+%%		Target file for the C-Mex S-function UDPSend_sfcn.c
+%% Author  : Hyowinner @2025/01/21
+%%           
+%% 在Linux Ubuntu中，虽然同一个套接字（socket）可以实现既接收（receive）又发送（send）数据。
+%% 为了兼容性更强，设计时采用分离式，发送端和接收端分别使用各自的套接字。
+%% 发送端有两个地址，本机和远程机，其中本机地址绑定到socket。
+%% 接收端，发送端各一个套接字，绑定本机，sendto远端1，recvfrom远端2
+%% 因为通常一个socket只能绑定到一个特定的端口,实现多个发送，需要多个socket
+%%
+%implements "UDPSend_sfcn" "C"
+
+%% Function: BlockTypeSetup ===========================================
+%%
+%function BlockTypeSetup(block, system) void
+    %if ~EXISTS(::UDPSendExist)
+        %assign ::UDPSendExist = 0
+    %else
+        %assign ::UDPSendExist = 1
+    %endif
+
+    %if ~EXISTS(::UDPRecvExist)
+        %<LibAddToCommonIncludes("stdio.h")>
+        %<LibAddToCommonIncludes("stdlib.h")>
+        %<LibAddToCommonIncludes("string.h")>
+        %<LibAddToCommonIncludes("unistd.h")>
+        %<LibAddToCommonIncludes("sys/socket.h")>
+        %<LibAddToCommonIncludes("netinet/in.h")>
+        %<LibAddToCommonIncludes("arpa/inet.h")>
+        %<LibAddToCommonIncludes("fcntl.h")>
+    %endif
+%endfunction %% BlockTypeSetup
+
+%% Function: BlockInstanceSetup ===========================================
+%%
+%function BlockInstanceSetup(block, system) void
+    %% UDP Send模块的计数器, 作为每个实例所使用相关变量的后缀
+    %if EXISTS(::UDP_SendCntInst)
+        %assign ::UDP_SendCntInst = ::UDP_SendCntInst + 1
+    %else
+        %assign ::UDP_SendCntInst = 0
+    %endif
+
+    %assign data = LibBlockInputSignal(0, "", "", 0)
+
+    %assign t_ip = SFcnParamSettings.r_ip
+    %assign ::send_ip = %<t_ip>
+    %assign t_buffer_sdsize = SFcnParamSettings.r_buffersize
+    %assign t_port = SFcnParamSettings.r_port
+    %assign t_localport = SFcnParamSettings.r_localport
+    %assign t_localip = SFcnParamSettings.r_localip
+
+    %assign fileC = LibGetModelDotCFile()
+    %assign fileH = LibGetModelDotHFile()
+
+    %openfile buffer_sd
+    #define SEND_PORT%<::UDP_SendCntInst> %<t_port>
+    #define BUFFER_SIZE%<::UDP_SendCntInst> %<t_buffer_sdsize>
+    #define LOCAL_IP%<::UDP_SendCntInst> %<t_localip>
+    #define LOCAL_PORT%<::UDP_SendCntInst> %<t_localport>
+    %closefile buffer_sd
+    %<LibSetSourceFileSection(fileC, "Defines", buffer_sd)>
+
+    %openfile buffer_sd
+    int sockfd_sd%<::UDP_SendCntInst>;
+    char buffer_sd%<::UDP_SendCntInst>[BUFFER_SIZE%<::UDP_SendCntInst>];
+    struct sockaddr_in sendaddr%<::UDP_SendCntInst>, local_addr%<::UDP_SendCntInst>;     %% 后期要根据对标模块发生变化发生设计变更 @20250208
+    %if ISEQUAL(%<t_ip>, "255.255.255.255")
+    int broadcast_permission = 1;   // 广播发送标志
+    %endif
+    %if ISEQUAL(%<::UDP_SendCntInst>, 0)
+    int reuse_permission = 1; 
+    int opt = 1;     
+    %endif
+    %closefile buffer_sd    
+    %<LibSetSourceFileSection(fileC, "Declarations", buffer_sd)>
+    
+
+%endfunction %% BlockInstanceSetup
+
+%% Function: Start ====================================================
+%%
+%function Start(block, system) Output
+    %% Start函数中的数字标记符添加
+    %if EXISTS(::UDP_SendCnt)
+        %assign ::UDP_SendCnt = ::UDP_SendCnt + 1
+    %else
+        %assign ::UDP_SendCnt = 0
+    %endif
+
+    %assign t_ip = SFcnParamSettings.r_ip
+    %assign t_port = SFcnParamSettings.r_port  
+    %assign ::sendSocket = "sockfd_sd%<::UDP_SendCnt>"     %% 方便回环测试时接收端使用
+    %assign ::sendAddr = "sendaddr%<::UDP_SendCnt>"        %% 方便回环测试时接收端使用
+    %warning t_ip = %<t_ip>
+
+    %if ISEQUAL(%<t_ip>, "255.255.255.255")
+        // 创建广播UDP套接字
+        if ((sockfd_sd%<::UDP_SendCnt> = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+            perror("socket creation failed");
+            exit(EXIT_FAILURE);
+        }
+        
+        // 初始化为广播发送，关键参数SO_BROADCAST
+        if (setsockopt(sockfd_sd%<::UDP_SendCnt>, SOL_SOCKET, SO_BROADCAST, (void *)&broadcast_permission, sizeof(broadcast_permission)) < 0) {
+            perror("setsockopt() failed");
+            close(sockfd_sd%<::UDP_SendCnt>);
+            exit(EXIT_FAILURE);
+        }
+    
+        // 初始化为重用地址发送，设置SO_REUSEADDR, 避免地址已经被使用错误
+        if (setsockopt(sockfd_sd%<::UDP_SendCnt>, SOL_SOCKET, SO_REUSEADDR, (void *)&broadcast_permission, sizeof(reuse_permission)) < 0) {
+            perror("setsockopt() failed");
+            close(sockfd_sd%<::UDP_SendCnt>);
+            exit(EXIT_FAILURE);
+        }
+    
+        // 设置广播目的地址
+        memset(&sendaddr%<::UDP_SendCnt>, 0, sizeof(sendaddr%<::UDP_SendCnt>));
+        sendaddr%<::UDP_SendCnt>.sin_family = AF_INET;
+        sendaddr%<::UDP_SendCnt>.sin_addr.s_addr = inet_addr(%<t_ip>);    // 按照广播方式设计
+        sendaddr%<::UDP_SendCnt>.sin_port = htons(SEND_PORT%<::UDP_SendCnt>);
+    %else
+        // 开始生成UDPSend相关程序....,  Modified by ZQingHua 20250915
+        
+        // 定点单播
+        sockfd_sd%<::UDP_SendCnt> = socket(AF_INET, SOCK_DGRAM, 0);
+        if (sockfd_sd%<::UDP_SendCnt> < 0) {
+            perror("socket creation failed");
+            exit(EXIT_FAILURE);
+        }
+        setsockopt(sockfd_sd%<::UDP_SendCnt>, SOL_SOCKET, SO_REUSEPORT, &opt, sizeof(opt));  // 允许不同socket绑定到相同的端口上
+        // 设置本机地址信息
+        memset(&local_addr%<::UDP_SendCnt>, 0, sizeof(local_addr%<::UDP_SendCnt>));
+        local_addr%<::UDP_SendCnt>.sin_family = AF_INET;
+        local_addr%<::UDP_SendCnt>.sin_addr.s_addr = inet_addr(LOCAL_IP%<::UDP_SendCnt>);
+        local_addr%<::UDP_SendCnt>.sin_port = htons(LOCAL_PORT%<::UDP_SendCnt>);
+    
+        // 单播模式，必须绑定本地IP地址和端口。UDPSend_sfcn生成
+        if (bind(sockfd_sd%<::UDP_SendCnt>, (struct sockaddr *)&local_addr%<::UDP_SendCnt>, sizeof(local_addr%<::UDP_SendCnt>)) < 0) {
+            printf("unicast send local socked bind error!\n");
+            perror("bind failed");
+            close(sockfd_sd%<::UDP_SendCnt>);
+            exit(EXIT_FAILURE);
+        }
+    
+        %% 发送/接收同端口号时，需要对sockfd进行非阻塞处理
+         // 获取套接字的当前状态，UDPSend_sfcn生成
+        int flags_%<::UDP_SendCnt> = fcntl(sockfd_sd%<::UDP_SendCnt>, F_GETFL, 0);
+        if (flags_%<::UDP_SendCnt> == -1) {
+            perror("fcntl get send flags_%<::UDP_SendCnt> failed");
+            exit(EXIT_FAILURE);
+        }
+    
+        // 将套接字设置为非阻塞模式，UDPSend_sfcn生成
+        if (fcntl(sockfd_sd%<::UDP_SendCnt>, F_SETFL, flags_%<::UDP_SendCnt> | O_NONBLOCK) == -1) {
+            perror("fcntl set flags_%<::UDP_SendCnt> failed");
+            exit(EXIT_FAILURE);
+        }
+    
+        %% 结束发送/接收同端口号处理
+    
+        // 设置远程机地址信息
+        memset(&sendaddr%<::UDP_SendCnt>, 0, sizeof(sendaddr%<::UDP_SendCnt>));
+        sendaddr%<::UDP_SendCnt>.sin_family = AF_INET;
+        sendaddr%<::UDP_SendCnt>.sin_port = htons(%<t_port>); // 设置端口号
+        sendaddr%<::UDP_SendCnt>.sin_addr.s_addr = inet_addr(%<t_ip>); // 设置单播目的IP地址
+
+        // 结束UDPRecv代码生成....,  Modified by ZQingHua 20250915    
+    %endif
+
+    
+%endfunction %% Start
+    
+%% Function: Outputs ===================================================
+%%
+%function Outputs(block, system) Output
+    %% Outputs函数中的数字标记符添加
+    %if EXISTS(::UDP_SendCntOut)
+        %assign ::UDP_SendCntOut = ::UDP_SendCntOut + 1
+    %else
+        %assign ::UDP_SendCntOut = 0
+    %endif
+
+    %assign data = LibBlockInputSignal(0, "", "", 0)
+    
+    %assign t_ip = SFcnParamSettings.r_ip
+    %assign t_buffer_size = SFcnParamSettings.r_buffersize
+    %assign t_port = SFcnParamSettings.r_port
+
+    memcpy(buffer_sd%<::UDP_SendCntOut>, &%<data>, BUFFER_SIZE%<::UDP_SendCntOut>);
+    if (sendto(sockfd_sd%<::UDP_SendCntOut>, buffer_sd%<::UDP_SendCntOut>, BUFFER_SIZE%<::UDP_SendCntOut>, 0, (const struct sockaddr *)&sendaddr%<::UDP_SendCntOut>, sizeof(sendaddr%<::UDP_SendCntOut>)) < 0) {
+        perror("sendto failed");
+        exit(EXIT_FAILURE);
+    }
+
+%endfunction %% Outputs
+
+%function Terminates(block, system) Output
+    
+%endfunction
