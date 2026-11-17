@@ -10,9 +10,9 @@
 
 ---
 > 📚 Document Navigation:<br>
-> [Home (Hub)](https://github.com/zqkbd/flight-control-toolbox) | [中文](./README.md)<br>
+> [Home (Hub)](https://github.com/zqhkd/flight-control-toolbox) | [中文](./README.md)<br>
 > **This toolbox:** [中文](./README.md) | [English](./README_EN.md)<br>
-> **Related toolbox:** [AFCToolBox — rapid flight-controller development](https://github.com/zqkbd/AFCToolBox) | [English](https://github.com/zqkbd/AFCToolBox/blob/main/README_EN.md)
+> **Related toolbox:** [AFCToolBox — rapid flight-controller development](https://github.com/zqhkd/AFCToolBox) | [English](https://github.com/zqhkd/AFCToolBox/blob/main/README_EN.md)
 ---
 ## Contents
 
